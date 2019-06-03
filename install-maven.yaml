@@ -1,0 +1,48 @@
+- name: Install Maven
+  hosts: jenkins
+  become: True
+  become_method: sudo
+  tasks:
+  - name: unarchive maven
+    unarchive:
+      remote_src: yes
+      src: "http://apache.mirrors.benatherton.com/maven/maven-3/3.6.1/binaries/apache-maven-3.6.1-bin.tar.gz"
+      dest: "/opt"
+  - name: unarchive java
+    unarchive:
+      remote_src: yes
+      src: "https://download.java.net/java/GA/jdk12.0.1/69cfe15208a647278a19ef0990eea691/12/GPL/openjdk-12.0.1_linux-x64_bin.tar.gz"
+      dest: "/opt"
+  - name: add environment variables script
+    template:
+      src: maven_template
+      dest: /etc/profile.d/maven.sh
+  # - name: reload /etc/profile.d/maven.sh
+  #   shell: ". /etc/profile"
+  - name: add necessary packages for docker
+    yum:
+      name: "{{ packages }}"
+    vars:
+      packages:
+      - yum-utils
+      - device-mapper-persistent-data
+      - lvm2
+  - name: Add Docker repo
+    get_url:
+      url: https://download.docker.com/linux/centos/docker-ce.repo
+      dest: /etc/yum.repos.d/docer-ce.repo
+  - name: install docker
+    yum:
+      name: docker-ce
+      state: present
+
+  - name: Add user user01 to docker group
+    user:
+      name: user01
+      groups: docker
+      append: yes
+  - name: Start Docker service
+    service:
+      name: docker
+      state: started
+      enabled: yes
