@@ -7,14 +7,16 @@
     yum:
       name: httpd
       state: present
-  - name: ensure httpd is running
-    service:
-      name: httpd 
-      state: started
   - name: template reverse proxy configuration
     template:
       src: reverse.conf.j2
       dest: /etc/httpd/conf.d/reverse.conf
+  - name: ensure httpd is running
+    service:
+      name: httpd 
+      state: started
+      enabled: yes
+
 
 
   

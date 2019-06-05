@@ -35,6 +35,15 @@
       recurse: yes
       state: directory
 
+  - name: Create a directory if it does not exist
+    file:
+      path: /opt/sonatype-work/nexus3/etc
+      state: directory
+      owner: nexus
+      group: nexus
+      mode: '0755'
+
+
   - name: Create configuration file for nexus
     template:
       src: nexus_template
@@ -45,6 +54,7 @@
       path: /opt/sonatype-work/nexus3/etc/nexus.properties
       regexp: nexus-context-path
       line: "nexus-context-path=/nexus"
+      create: yes
 
   - name: reload systemd
     systemd:

@@ -44,17 +44,20 @@
 
   - name: Modify docker service to allow remote user
     lineinfile:
+      path: /usr/lib/systemd/system/docker.service
       regexp: '^ExecStart'
-      line: |
-        "ExecStart=/usr/bin/dockerd -H tcp://0.0.0.0:4243
-        -H unix:///var/run/docker.sock -H fd:// --containerd=/run/containerd/containerd.sock"
+      line: >
+        ExecStart=/usr/bin/dockerd -H tcp://0.0.0.0:4243
+        -H unix:///var/run/docker.sock -H fd:// --containerd=/run/containerd/containerd.sock
   
   - name: Allow port 4243
     firewalld:
       port: 4243/tcp
       permanent: yes
       state: enabled
-
+  - name: reload systemd
+    systemd:
+      daemon_reload: yes
   - name: Start Docker service
     service:
       name: docker

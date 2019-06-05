@@ -19,9 +19,9 @@
 
   - name: add /jenkins to base url for apache reverse proxy
     lineinfile:
-      path: /etc/default/jenkins
+      path: /etc/sysconfig/jenkins
       line: JENKINS_ARGS="--prefix=/jenkins"
-      create: yes
+  
 
     
 
@@ -37,11 +37,21 @@
   - name: install git
     yum: name=git state=present
 
+  - name: Wait 300 seconds for port 8080 to become open on the host
+    uri:
+      url: "http://127.0.0.1:8080/jenkins/login"
+      status_code: 200
+    register: result
+    until: result.status == 200
+    retries: 60
+    delay: 1
+ 
+
   - name: install Jenkins CLI
-    get_url: url=http://localhost:8080/jnlpJars/jenkins-cli.jar dest=.
+    get_url: url=http://localhost:8080/jenkins/jnlpJars/jenkins-cli.jar dest=.
 
   - name: Login to Jenkins using base password
-    shell: java -jar jenkins-cli.jar -s http://localhost:8080 who-am-i --username admin --password `sudo cat /var/lib/jenkins/secrets/initialAdminPassword`
+    shell: java -jar jenkins-cli.jar -s http://localhost:8080/jenkins who-am-i --username admin --password `sudo cat /var/lib/jenkins/secrets/initialAdminPassword`
 
   # - name: put jenkins ssh key into Jenkins server
   #   copy:
@@ -62,10 +72,10 @@
   - name: create jenkins admin user
     shell: >
       echo 'jenkins.model.Jenkins.instance.securityRealm.createAccount("jenkins", "jenkins")'
-      | java -jar ./jenkins-cli.jar -s http://localhost:8080/ -auth admin:`sudo cat /var/lib/jenkins/secrets/initialAdminPassword` -noKeyAuth groovy = –
+      | java -jar ./jenkins-cli.jar -s http://localhost:8080/jenkins -auth admin:`sudo cat /var/lib/jenkins/secrets/initialAdminPassword` -noKeyAuth groovy = –
 
   - name: Download Jenkins base plugins
-    shell: java -jar jenkins-cli.jar -s http://localhost:8080/ -auth jenkins:jenkins install-plugin {{item}}
+    shell: java -jar jenkins-cli.jar -s http://localhost:8080/jenkins -auth jenkins:jenkins install-plugin {{item}}
     with_items:
       - cloudbees-folder
       - mailer
@@ -135,5 +145,19 @@
       insertbefore: "<quietPeriod>"
       block: "{{ lookup('file', 'jenkins.cloud.conf.j2') }}"
 
+  - name: restart Jenkins
+    service: name=jenkins state=restarted
+
+
+  - name: Wait 300 seconds for port 8080 to become open on the host
+    uri:
+      url: "http://127.0.0.1:8080/jenkins/login"
+      status_code: 200
+    register: result
+    until: result.status == 200
+    retries: 60
+    delay: 1
+
+
   - name: create Jenkins job from configuration
-    shell: java -jar jenkins-cli.jar -s http://localhost:8080/ -auth jenkins:jenkins create-job Project_Pipeline2 < /tmp/config.xml
+    shell: java -jar jenkins-cli.jar -s http://localhost:8080/jenkins -auth jenkins:jenkins create-job Project_Pipeline2 < /tmp/config.xml
