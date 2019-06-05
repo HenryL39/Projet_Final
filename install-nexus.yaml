@@ -1,5 +1,5 @@
 - name: Install Nexus
-  hosts: jenkins
+  hosts: nexus
   become: True
   become_method: sudo
   tasks:
@@ -39,6 +39,12 @@
     template:
       src: nexus_template
       dest: /etc/systemd/system/nexus.service
+
+  - name: Add /nexus to base URL for apache reverse proxy
+    lineinfile:
+      path: /opt/sonatype-work/nexus3/etc/nexus.properties
+      regexp: nexus-context-path
+      line: "nexus-context-path=/nexus"
 
   - name: reload systemd
     systemd:
