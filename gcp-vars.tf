@@ -3,6 +3,8 @@ variable "gcp-region" {}
 variable "gcp-zone" {}
 variable "gcp-test-firewall" {}
 variable "gcp-prod-firewall" {}
+variable "gcp-test-out-firewall" {}
+variable "gcp-prod-out-firewall" {}
 variable "gcp-test-vnet" {}
 variable "gcp-prod-vnet" {}
 variable "gce_ssh_user" {}
@@ -18,6 +20,11 @@ variable "gcp-test-master-cidr" {}
 variable "gcp-prod-master-cidr" {}
 variable "gcp-test-nodes" {}
 variable "gcp-prod-nodes" {}
+
+variable "gcp-test-lb" {}
+variable "gcp-prod-lb" {}
+variable "gcp-test-target-pool" {}
+variable "gcp-prod-target-pool" {}
 
 variable "gcp-test-subnet" {
     type = "list"

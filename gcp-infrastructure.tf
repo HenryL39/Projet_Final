@@ -19,9 +19,10 @@ resource "google_compute_firewall" "firewall-test" {
 
   allow {
     protocol = "tcp"
-    ports    = ["80", "22"]
+    ports    = ["80", "22", "27017"]
   }
 
+  priority = 1000
   source_ranges = ["0.0.0.0/0"]
 }
 
@@ -31,10 +32,37 @@ resource "google_compute_firewall" "firewall-prod" {
 
   allow {
     protocol = "tcp"
-    ports    = ["80", "22"]
+    ports    = ["80", "22", "27017"]
   }
 
+  priority = 1000
   source_ranges = ["0.0.0.0/0"]
+}
+
+resource "google_compute_firewall" "firewall-test-out" {
+  name    = "${var.gcp-test-out-firewall}"
+  network = "${google_compute_network.vnet-test.name}"
+
+  deny {
+    protocol = "tcp"
+  }
+
+  direction = "EGRESS"
+  priority = 20
+  destination_ranges = ["10.2.0.0/16","10.5.0.0/28"]
+}
+
+resource "google_compute_firewall" "firewall-prod-out" {
+  name    = "${var.gcp-prod-out-firewall}"
+  network = "${google_compute_network.vnet-prod.name}"
+
+  deny {
+    protocol = "tcp"
+  }
+
+  direction = "EGRESS"
+  priority = 20
+  destination_ranges = ["10.5.0.0/16","10.6.0.0/28"]
 }
 
 
@@ -154,6 +182,37 @@ resource "google_container_node_pool" "prod-nodes" {
   }
 }
 
+
+###########################################################
+#----------------------Load Balancer----------------------#
+###########################################################
+
+resource "google_compute_forwarding_rule" "test-load-balancer" {
+  name       = "${var.gcp-test-lb}"
+  target     = "${google_compute_target_pool.test-target-pool.self_link}"
+}
+
+resource "google_compute_target_pool" "test-target-pool" {
+  name = "${var.gcp-test-target-pool}"
+
+  instances = [
+    "${var.gcp-zone}/${var.gcp-test-nodes}",
+  ]
+}
+
+resource "google_compute_forwarding_rule" "prod-load-balancer" {
+  name       = "${var.gcp-prod-lb}"
+  target     = "${google_compute_target_pool.prod-target-pool.self_link}"
+}
+
+resource "google_compute_target_pool" "prod-target-pool" {
+  name = "${var.gcp-prod-target-pool}"
+
+  instances = [
+    "${var.gcp-zone}/${var.gcp-prod-nodes}",
+  ]
+}
+
 ###########################################################
 #----------------------Subnets----------------------------#
 ###########################################################
@@ -208,9 +267,6 @@ resource "google_compute_instance" "test-database" {
     # A default network is created for all GCP projects
     network       = "${google_compute_network.vnet-test.self_link}"
     subnetwork       = "${element(google_compute_subnetwork.subnet-test.*.self_link, 0)}"
-    access_config {
-
-    }
   }
 
   metadata {
@@ -232,9 +288,6 @@ resource "google_compute_instance" "prod-database" {
     # A default network is created for all GCP projects
     network       = "${google_compute_network.vnet-prod.self_link}"
     subnetwork       = "${element(google_compute_subnetwork.subnet-prod.*.self_link, 0)}"
-    access_config {
-
-    }
   }
 
   metadata {

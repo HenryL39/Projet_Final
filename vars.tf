@@ -14,10 +14,7 @@ variable "os_disk_name" {}
 
 
 
-variable "PIP_names" {
-    type = "list"
-    default = ["docker-PIP", "nexus-PIP", "apache-PIP"]
-}
+variable "PIP_name" {}
 
 variable "NIC_names" {
     type = "list"

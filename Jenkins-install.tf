@@ -41,17 +41,6 @@ resource "azurerm_subnet" "Subnet" {
 #----------------------Public IP--------------------------#
 ###########################################################
 
-resource "azurerm_public_ip" "JenkinsPIP" {
-    name                         = "${var.jenkins_PIP_name}"
-    location                     = "${var.region}"
-    resource_group_name          = "${azurerm_resource_group.myterraformgroup.name}"
-    allocation_method            = "Dynamic"
-
-    tags {
-        environment = "Terraform Demo"
-    }
-}
-
 ###########################################################
 #----------------------Security Group---------------------#
 ###########################################################
@@ -104,7 +93,6 @@ resource "azurerm_network_interface" "JenkinsNIC" {
         name                          = "myNicConfiguration2"
         subnet_id                     = "${azurerm_subnet.Subnet.id}"
         private_ip_address_allocation = "Dynamic"
-        public_ip_address_id          = "${azurerm_public_ip.JenkinsPIP.id}"
     }
 
     tags {
@@ -143,9 +131,9 @@ resource "azurerm_virtual_machine" "JenkinsVM" {
     }
 
     storage_image_reference {
-        publisher = "Canonical"
-        offer     = "UbuntuServer"
-        sku       = "16.04.0-LTS"
+        publisher = "OpenLogic"
+        offer     = "CentOS"
+        sku       = "7.5"
         version   = "latest"
     }
 
