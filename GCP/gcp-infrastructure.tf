@@ -3,7 +3,7 @@
 ###########################################################
 
 provider "google" {
-    credentials     = "${file("~/Téléchargements/round-core-242612-fe2d03c2950f.json")}"
+    credentials     = "${file("credentials_gcp.json")}"
     project         = "${var.gcp-projet-id}"
     region          = "${var.gcp-region}"
     zone            = "${var.gcp-zone}"
