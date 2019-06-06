@@ -308,10 +308,6 @@ resource "google_compute_instance" "test-database" {
     subnetwork       = "${element(google_compute_subnetwork.subnet-test.*.self_link, 0)}"
   }
 
-  metadata {
-    sshKeys = "${var.gce_ssh_user}:${file(var.gce_ssh_pub_key_file)}"
-  }
-
   metadata_startup_script = "${file("./script.sh")}"
 }
 
@@ -329,10 +325,6 @@ resource "google_compute_instance" "prod-database" {
     # A default network is created for all GCP projects
     network       = "${google_compute_network.vnet-prod.self_link}"
     subnetwork       = "${element(google_compute_subnetwork.subnet-prod.*.self_link, 0)}"
-  }
-
-  metadata {
-    sshKeys = "${var.gce_ssh_user}:${file(var.gce_ssh_pub_key_file)}"
   }
 
   metadata_startup_script = "${file("./script.sh")}"
@@ -355,10 +347,6 @@ resource "google_compute_instance" "test-client" {
     access_config {}
   }
 
-  metadata {
-    sshKeys = "${var.gce_ssh_user}:${file(var.gce_ssh_pub_key_file)}"
-  }
-
   metadata_startup_script = "${file("./script.sh")}"
 }
 
@@ -377,10 +365,6 @@ resource "google_compute_instance" "prod-client" {
     network       = "${google_compute_network.vnet-prod.self_link}"
     subnetwork       = "${element(google_compute_subnetwork.subnet-prod.*.self_link, 0)}"
     access_config {}
-  }
-
-  metadata {
-    sshKeys = "${var.gce_ssh_user}:${file(var.gce_ssh_pub_key_file)}"
   }
 
   metadata_startup_script = "${file("./script.sh")}"
