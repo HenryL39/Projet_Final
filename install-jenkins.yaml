@@ -129,6 +129,7 @@
       - maven-plugin
       - terraform
       - docker-plugin
+      - pipeline-utility-steps
 
   - name: Insert/Update HTML surrounded by custom markers after <body> line
     lineinfile:
