@@ -19,3 +19,4 @@ spec:
         image: emiup/wunderit-final:1.0.0-SNAPSHOT
         ports:
         - containerPort: 80
+        command: [ "/bin/bash", "-ce", "tail -f /dev/null" ]
