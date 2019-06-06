@@ -5,6 +5,7 @@ variable "NSG_name" {}
 variable "vnet_name" {}
 variable "jenkins_PIP_name" {}
 variable "ssh_port" {}
+variable "http_port" {}
 variable "jenkins_port" {}
 variable "jenkins_NIC_name" {}
 variable "jenkins_VM_name" {}

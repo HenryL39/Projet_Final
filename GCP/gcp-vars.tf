@@ -11,6 +11,8 @@ variable "gce_ssh_user" {}
 variable "gce_ssh_pub_key_file" {}
 variable "gcp-test-vm" {}
 variable "gcp-prod-vm" {}
+variable "gcp-prod-client" {}
+variable "gcp-test-client" {}
 
 variable "gcp-test-cluster" {}
 variable "gcp-prod-cluster" {}
@@ -20,6 +22,11 @@ variable "gcp-test-master-cidr" {}
 variable "gcp-prod-master-cidr" {}
 variable "gcp-test-nodes" {}
 variable "gcp-prod-nodes" {}
+
+variable "test-nat" {}
+variable "prod-nat" {}
+variable "test-router" {}
+variable "prod-router" {}
 
 variable "gcp-test-lb" {}
 variable "gcp-prod-lb" {}

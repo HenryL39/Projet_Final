@@ -26,6 +26,22 @@ resource "azurerm_virtual_network" "Vnet" {
     }
 }
 
+
+###########################################################
+#----------------------Subnetwork-------------------------#
+###########################################################
+
+resource "azurerm_public_ip" "jenkins_PIP" {
+    name                         = "${var.jenkins_PIP_name}"
+    location                     = "${var.region}"
+    resource_group_name          = "${azurerm_resource_group.myterraformgroup.name}"
+    allocation_method            = "Dynamic"
+
+    tags {
+        environment = "Terraform Demo"
+    }
+}
+
 ###########################################################
 #----------------------Subnetwork-------------------------#
 ###########################################################
@@ -36,10 +52,6 @@ resource "azurerm_subnet" "Subnet" {
     virtual_network_name = "${azurerm_virtual_network.Vnet.name}"
     address_prefix       = "${var.sub_adress}"
 }
-
-###########################################################
-#----------------------Public IP--------------------------#
-###########################################################
 
 ###########################################################
 #----------------------Security Group---------------------#
@@ -58,6 +70,18 @@ resource "azurerm_network_security_group" "NSG" {
         protocol                   = "Tcp"
         source_port_range          = "*"
         destination_port_range     = "${var.ssh_port}"
+        source_address_prefix      = "*"
+        destination_address_prefix = "*"
+    }
+
+    security_rule {
+        name                       = "HTTP"
+        priority                   = 1002
+        direction                  = "Inbound"
+        access                     = "Allow"
+        protocol                   = "Tcp"
+        source_port_range          = "*"
+        destination_port_range     = "${var.http_port}"
         source_address_prefix      = "*"
         destination_address_prefix = "*"
     }
@@ -93,6 +117,7 @@ resource "azurerm_network_interface" "JenkinsNIC" {
         name                          = "myNicConfiguration2"
         subnet_id                     = "${azurerm_subnet.Subnet.id}"
         private_ip_address_allocation = "Dynamic"
+        public_ip_address_id          = "${azurerm_public_ip.jenkins_PIP.id}"
     }
 
     tags {
@@ -153,4 +178,8 @@ resource "azurerm_virtual_machine" "JenkinsVM" {
     tags {
         environment = "Terraform Demo"
     }
+}
+
+output "Jenkins_IP" {
+    value = "${azurerm_public_ip.jenkins_PIP.ip_address}"
 }

@@ -144,3 +144,7 @@ resource "azurerm_virtual_machine" "public_VMs" {
         environment = "Terraform Demo"
     }
 }
+
+output "instances_IP" {
+    value = ["${azurerm_public_ip.PIP.ip_address}", "${element(azurerm_network_interface.NICs.*.private_ip_address, 0)}", "${element(azurerm_network_interface.NICs.*.private_ip_address, 1)}"]
+}

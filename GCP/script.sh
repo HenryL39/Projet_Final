@@ -1,0 +1,1 @@
+sudo sed '21 a Match all' /etc/ssh/sshd_config | sed '22 a \ \ PasswordAuthentication yes' > /tmp/sshd_config;sudo mv /tmp/sshd_config /etc/ssh/sshd_config;sudo systemctl restart sshd; sudo echo -e "AZER001_\nAZER001_\n" | sudo passwd henry

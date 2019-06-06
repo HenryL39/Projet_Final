@@ -75,11 +75,6 @@ resource "google_container_cluster" "test-cluster" {
   location = "${var.gcp-zone}"
   network    = "${google_compute_network.vnet-test.self_link}"
   subnetwork = "${element(google_compute_subnetwork.subnet-test.*.self_link, 1)}"
-
-  # We can't create a cluster with no node pool defined, but we want to only use
-  # separately managed node pools. So we create the smallest possible default
-  # node pool and immediately delete it.
-  remove_default_node_pool = true
   initial_node_count = 1
 
   ip_allocation_policy {
@@ -88,8 +83,6 @@ resource "google_container_cluster" "test-cluster" {
 
   private_cluster_config {
     master_ipv4_cidr_block = "${var.gcp-test-master-cidr}"
-    enable_private_nodes = true
-    enable_private_endpoint = true
   }
 
   # Setting an empty username and password explicitly disables basic auth
@@ -99,7 +92,12 @@ resource "google_container_cluster" "test-cluster" {
   }
 
   node_config {
-    tags = ["master"]
+     oauth_scopes = [
+      "https://www.googleapis.com/auth/compute",
+      "https://www.googleapis.com/auth/devstorage.read_only",
+      "https://www.googleapis.com/auth/logging.write",
+      "https://www.googleapis.com/auth/monitoring",
+    ]
   }
 }
 
@@ -108,11 +106,6 @@ resource "google_container_cluster" "prod-cluster" {
   location = "${var.gcp-zone}"
   network    = "${google_compute_network.vnet-prod.self_link}"
   subnetwork = "${element(google_compute_subnetwork.subnet-prod.*.self_link, 1)}"
-
-  # We can't create a cluster with no node pool defined, but we want to only use
-  # separately managed node pools. So we create the smallest possible default
-  # node pool and immediately delete it.
-  remove_default_node_pool = true
   initial_node_count = 1
 
   ip_allocation_policy {
@@ -121,8 +114,6 @@ resource "google_container_cluster" "prod-cluster" {
 
   private_cluster_config {
     master_ipv4_cidr_block = "${var.gcp-prod-master-cidr}"
-    enable_private_nodes = true
-    enable_private_endpoint = true
   }
 
   # Setting an empty username and password explicitly disables basic auth
@@ -132,55 +123,103 @@ resource "google_container_cluster" "prod-cluster" {
   }
 
   node_config {
-    tags = ["master"]
+     oauth_scopes = [
+      "https://www.googleapis.com/auth/compute",
+      "https://www.googleapis.com/auth/devstorage.read_only",
+      "https://www.googleapis.com/auth/logging.write",
+      "https://www.googleapis.com/auth/monitoring",
+    ]
   }
+}
+
+
+###########################################################
+#----------------------NAT--------------------------------#
+###########################################################
+
+resource "google_compute_router" "router-test" {
+  name    = "${var.test-router}"
+  region  = "${var.gcp-region}"
+  network = "${google_compute_network.vnet-test.self_link}"
+  bgp {
+    asn = 64514
+  }
+}
+
+resource "google_compute_router" "router-prod" {
+  name    = "${var.prod-router}"
+  region  = "${var.gcp-region}"
+  network = "${google_compute_network.vnet-prod.self_link}"
+  bgp {
+    asn = 64514
+  }
+}
+
+resource "google_compute_router_nat" "test-nat" {
+  name                               = "${var.test-nat}"
+  router                             = "${google_compute_router.router-test.name}"
+  region                             = "${var.gcp-region}"
+  nat_ip_allocate_option             = "AUTO_ONLY"
+  source_subnetwork_ip_ranges_to_nat = "ALL_SUBNETWORKS_ALL_IP_RANGES"
+}
+
+resource "google_compute_router_nat" "prod-nat" {
+  name                               = "${var.prod-nat}"
+  router                             = "${google_compute_router.router-prod.name}"
+  region                             = "${var.gcp-region}"
+  nat_ip_allocate_option             = "AUTO_ONLY"
+  source_subnetwork_ip_ranges_to_nat = "ALL_SUBNETWORKS_ALL_IP_RANGES"
 }
 
 ###########################################################
 #----------------------Node Pool--------------------------#
 ###########################################################
 
-resource "google_container_node_pool" "test-nodes" {
-  name       = "${var.gcp-test-nodes}"
-  location   = "${var.gcp-zone}"
-  cluster    = "${google_container_cluster.test-cluster.name}"
-  node_count = 1
+// resource "google_container_node_pool" "test-nodes" {
+//   name       = "${var.gcp-test-nodes}"
+//   location   = "${var.gcp-zone}"
+//   cluster    = "${google_container_cluster.test-cluster.name}"
+//   node_count = 1
 
-  node_config {
-    preemptible  = true
-    machine_type = "n1-standard-1"
+//   node_config {
+//     preemptible  = true
+//     machine_type = "n1-standard-1"
 
-    metadata {
-      disable-legacy-endpoints = "true"
-    }
+//     metadata {
+//       disable-legacy-endpoints = "true"
+//     }
 
-    oauth_scopes = [
-      "https://www.googleapis.com/auth/logging.write",
-      "https://www.googleapis.com/auth/monitoring",
-    ]
-  }
-}
+//     oauth_scopes = [
+//       "https://www.googleapis.com/auth/compute",
+//       "https://www.googleapis.com/auth/devstorage.read_only",
+//       "https://www.googleapis.com/auth/logging.write",
+//       "https://www.googleapis.com/auth/monitoring",
+//     ]
+//   }
+// }
 
-resource "google_container_node_pool" "prod-nodes" {
-  name       = "${var.gcp-prod-nodes}"
-  location   = "${var.gcp-zone}"
-  cluster    = "${google_container_cluster.prod-cluster.name}"
-  node_count = 1
+// resource "google_container_node_pool" "prod-nodes" {
+//   name       = "${var.gcp-prod-nodes}"
+//   location   = "${var.gcp-zone}"
+//   cluster    = "${google_container_cluster.prod-cluster.name}"
+//   node_count = 1
 
-  node_config {
-    preemptible  = true
-    machine_type = "n1-standard-1"
+//   node_config {
+//     preemptible  = true
+//     machine_type = "n1-standard-1"
 
-    metadata {
-      disable-legacy-endpoints = "true"
-    }
+//     metadata {
+//       disable-legacy-endpoints = "true"
+//     }
 
-    oauth_scopes = [
-      "https://www.googleapis.com/auth/logging.write",
-      "https://www.googleapis.com/auth/monitoring",
-    ]
-  }
-}
+//     oauth_scopes = [
+//       "https://www.googleapis.com/auth/compute",
+//       "https://www.googleapis.com/auth/devstorage.read_only",
+//       "https://www.googleapis.com/auth/logging.write",
+//       "https://www.googleapis.com/auth/monitoring",
+//     ]
+//   }
+// }
 
 
 ###########################################################
@@ -272,6 +311,8 @@ resource "google_compute_instance" "test-database" {
   metadata {
     sshKeys = "${var.gce_ssh_user}:${file(var.gce_ssh_pub_key_file)}"
   }
+
+  metadata_startup_script = "${file("./script.sh")}"
 }
 
 resource "google_compute_instance" "prod-database" {
@@ -293,4 +334,54 @@ resource "google_compute_instance" "prod-database" {
   metadata {
     sshKeys = "${var.gce_ssh_user}:${file(var.gce_ssh_pub_key_file)}"
   }
+
+  metadata_startup_script = "${file("./script.sh")}"
+}
+
+resource "google_compute_instance" "test-client" {
+  name         = "${var.gcp-test-client}"
+  machine_type = "n1-standard-1"
+
+  boot_disk {
+    initialize_params {
+      image = "centos-7"
+    }
+  }
+
+  network_interface {
+    # A default network is created for all GCP projects
+    network       = "${google_compute_network.vnet-test.self_link}"
+    subnetwork       = "${element(google_compute_subnetwork.subnet-test.*.self_link, 0)}"
+    access_config {}
+  }
+
+  metadata {
+    sshKeys = "${var.gce_ssh_user}:${file(var.gce_ssh_pub_key_file)}"
+  }
+
+  metadata_startup_script = "${file("./script.sh")}"
+}
+
+resource "google_compute_instance" "prod-client" {
+  name         = "${var.gcp-prod-client}"
+  machine_type = "n1-standard-1"
+
+  boot_disk {
+    initialize_params {
+      image = "centos-7"
+    }
+  }
+
+  network_interface {
+    # A default network is created for all GCP projects
+    network       = "${google_compute_network.vnet-prod.self_link}"
+    subnetwork       = "${element(google_compute_subnetwork.subnet-prod.*.self_link, 0)}"
+    access_config {}
+  }
+
+  metadata {
+    sshKeys = "${var.gce_ssh_user}:${file(var.gce_ssh_pub_key_file)}"
+  }
+
+  metadata_startup_script = "${file("./script.sh")}"
 }

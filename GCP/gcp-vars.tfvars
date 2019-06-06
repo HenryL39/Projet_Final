@@ -11,6 +11,8 @@ gcp-test-vm             = "test-database"
 gcp-prod-vm             = "prod-database"
 gce_ssh_user            = "henry"
 gce_ssh_pub_key_file    = "~/.ssh/id_rsa.pub"
+gcp-prod-client         = "prod-client"
+gcp-test-client         = "test-client"
 
 gcp-test-nodes          = "test-nodes"
 gcp-prod-nodes          = "prod-nodes"
@@ -20,6 +22,12 @@ gcp-test-cluster-cidr   = "10.2.0.0/16"
 gcp-prod-cluster-cidr   = "10.4.0.0/16"
 gcp-test-master-cidr    = "10.5.0.0/28"
 gcp-prod-master-cidr    = "10.6.0.0/28"
+
+
+test-nat                = "test-nat"
+prod-nat                = "prod-nat"
+test-router             = "test-router"
+prod-router             = "prod-router"
 
 gcp-test-lb             = "test-load-balancer"
 gcp-prod-lb             = "prod-load-balancer"

@@ -1,6 +1,0 @@
-[jenkins]
-testjenkins002.westeurope.cloudapp.azure.com
-
-[all:vars]
-ansible_ssh_user=user01
-ansible_sudo_pass=User01!!!!!!
