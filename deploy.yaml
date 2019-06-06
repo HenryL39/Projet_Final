@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pj
+  labels:
+    app: pj
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: pj
+  template:
+    metadata:
+      labels:
+        app: pj
+    spec:
+      containers:
+      - name: pj
+        image: emiup/wunderit-final
+        ports:
+        - containerPort: 80
