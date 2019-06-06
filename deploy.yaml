@@ -16,6 +16,6 @@ spec:
     spec:
       containers:
       - name: pj
-        image: emiup/wunderit-final
+        image: emiup/wunderit-final:1.0.0-SNAPSHOT
         ports:
         - containerPort: 80
