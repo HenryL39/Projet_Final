@@ -1,0 +1,51 @@
+pipeline {
+    agent { label 'slave' }
+    stages {
+        stage ("checkout") {
+            steps {
+                sh '''
+                [ -d "Restful-Webservice" ] && rm -rf Restful-Webservice/
+                git clone http://github.com/girldevops/Restful-Webservice.git
+                cp Restful-Webservice/pom.xml .
+                [ -d "Projet_Final" ] && rm -rf Projet_Final/
+                git clone http://github.com/HenryL39/Projet_Final.git
+                cd Projet_Final
+                git checkout develop
+                cp pom.update ../Restful-Webservice/pom.update
+                '''
+            }
+        }
+        stage ("docker") {
+            tools {
+                maven "maven3"
+            } 
+            environment {
+                //Use Pipeline Utility Steps plugin to read information from pom.xml into env variables
+                ID = readMavenPom().getPackaging()
+                
+                IMAGE = readMavenPom().getArtifactId()
+                VERSION = readMavenPom().getVersion()
+                MONGO_ADMIN = "myUserAdmin"
+                MONGO_PWD = "abc123"
+                MONGO_DB = "admin"
+                MONGO_URL = "10.1.0.2"
+                MONGO_PORT = "27017"
+            }
+            steps {
+                sh '''
+                echo ${IMAGE}-${VERSION}.${ID}
+                cd Restful-Webservice
+                sed -e '/<\\/plugin>/r pom.update' pom.xml > pom2.xml
+                cat pom2.xml
+                mv pom2.xml pom.xml
+                echo -e "FROM openjdk:12.0.1-jdk-oraclelinux7\nENTRYPOINT [\\"/usr/bin/java\\", \\"-jar\\", \\"/tmp/myservice.jar/${IMAGE}-${VERSION}.${ID}\\", \\"--spring.data.mongodb.uri=mongodb://${MONGO_ADMIN}:${MONGO_PWD}@${MONGO_URL}:${MONGO_PORT}/${MONGO_DB}\\"]\nARG JAR_FILE\nADD target/\\${JAR_FILE} /tmp/myservice.jar" > Dockerfile
+                echo ${VERSION}
+                mvn -s /tmp/settings.xml clean package dockerfile:build -Dmaven.test.failure.ignore=true
+                docker login -u emiup -p devops_@0
+                docker tag wunderit/final:${VERSION} emiup/wunderit-final:${VERSION}
+                docker push emiup/wunderit-final:${VERSION}
+                '''
+            }
+        }
+    }
+}

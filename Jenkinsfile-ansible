@@ -1,0 +1,26 @@
+pipeline {
+    agent {
+        docker { image 'williamyeh/ansible:centos7'
+        args '--entrypoint="" -u root'}
+    }
+    stages {
+        stage('Ansible') {
+            steps {
+                sh '''
+                cat /etc/ssh/ssh_config
+                sed '58 a \\ \\  StrictHostKeyChecking no' /etc/ssh/ssh_config> /tmp/ssh_config;mv /tmp/ssh_config /etc/ssh/ssh_config
+                cat /etc/ssh/ssh_config
+                export HOME=/tmp
+                set +x
+                [ -d "Projet_Final" ] && rm -rf Projet_Final/
+                yum install -y git
+                git clone https://github.com/HenryL39/Projet_Final.git
+                cd Projet_Final
+                export ANSIBLE_HOSt_KEY_CHECKING=False
+                git checkout develop
+                ansible-playbook install-mongodb.yaml -i inv2
+                '''
+            }
+        }
+    }
+}

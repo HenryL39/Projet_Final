@@ -1,0 +1,30 @@
+pipeline {
+    agent {
+        docker { image 'google/cloud-sdk:latest'
+        args '-v $HOME:/home -w /home' }
+    }
+    stages {
+        stage('Kubernetes') {
+            steps {
+                withCredentials([file(credentialsId: 'mickey-tamer', variable: 'MICKEY')]) {
+                  sh '''
+                  export CLOUDSDK_CONFIG=/tmp
+                  export HOME=/tmp
+                  set +x
+                  gcloud --quiet auth activate-service-account --key-file=${MICKEY}
+                  gcloud config set project round-core-242612
+                  
+                  gcloud container clusters get-credentials test-cluster --zone us-central1-a --project round-core-242612
+                  [ -d Projet_Final/ ] && rm -rf Projet_Final/
+                  git clone https://github.com/HenryL39/Projet_Final.git
+                  cd Projet_Final
+                  git checkout develop
+                  kubectl apply -f deploy.yaml
+                  kubectl apply -f service.yaml
+                  '''
+                }
+            }
+        }
+    }
+    
+}
