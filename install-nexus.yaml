@@ -1,0 +1,82 @@
+- name: Install Nexus
+  hosts: nexus
+  become: True
+  become_method: sudo
+  tasks:
+  - name: install Java
+    yum: name=java-1.8.0-openjdk.x86_64 state=present
+  
+  - name: unarchive nexus
+    unarchive:
+      remote_src: yes
+      src: "http://download.sonatype.com/nexus/3/nexus-3.16.2-01-unix.tar.gz"
+      dest: "/opt"
+
+  - name: Create nexus user
+    user:
+      name: nexus
+      system: yes
+      shell: /sbin/nologin
+      home: /opt/
+
+  - name: change owner of nexus directory
+    file:
+      path: /opt/nexus-3.16.2-01
+      owner: nexus
+      group: nexus
+      recurse: yes
+      state: directory
+
+  - name: change owner of sonatype directory
+    file:
+      path: /opt/sonatype-work
+      owner: nexus
+      group: nexus
+      recurse: yes
+      state: directory
+
+  - name: Create a directory if it does not exist
+    file:
+      path: /opt/sonatype-work/nexus3/etc
+      state: directory
+      owner: nexus
+      group: nexus
+      mode: '0755'
+
+
+  - name: Create configuration file for nexus
+    template:
+      src: nexus_template
+      dest: /etc/systemd/system/nexus.service
+
+  - name: Add /nexus to base URL for apache reverse proxy
+    lineinfile:
+      path: /opt/sonatype-work/nexus3/etc/nexus.properties
+      regexp: nexus-context-path
+      line: "nexus-context-path=/nexus"
+      create: yes
+
+  - name: reload systemd
+    systemd:
+      daemon_reload: yes
+
+  - name: start nexus service
+    service:
+      name: nexus.service
+      state: started
+      enabled: yes
+
+  - name: ensure firewalld is running
+    service: name=firewalld state=started
+
+  - name: insert firewalld rule for nexus http port
+    firewalld:
+      port: 8081/tcp
+      permanent: true
+      state: enabled
+      immediate: yes
+
+  - name: reload firewalld
+    service:
+      name: firewalld
+      state: restarted

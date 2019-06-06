@@ -1,0 +1,14 @@
+<VirtualHost *:80>
+
+  ServerName {{ ip_apache }}:80
+  ProxyPreserveHost On
+  ProxyRequests Off
+  AllowEncodedSlashes NoDecode
+
+  ProxyPass /jenkins http://{{ ip_jenkins }}:8080/jenkins
+  ProxyPassReverse /jenkins http://{{ ip_jenkins }}:8080/jenkins
+
+  ProxyPass /nexus http://{{ ip_nexus }}:8081/nexus
+  ProxyPassReverse /nexus http://{{ ip_nexus }}:8081/nexus
+
+</VirtualHost>
