@@ -19,4 +19,4 @@ spec:
         image: emiup/wunderit-final:1.0.0-SNAPSHOT
         ports:
         - containerPort: 80
-        command: [ "/bin/bash", "-ce", "tail -f /dev/null" ]
+        command: [ "/usr/bin/java", "-jar", "/tmp/myservice.jar/restfulweb-1.0.0-SNAPSHOT.jar","--spring.data.mongodb.uri=mongodb://myUserAdmin:abc123@10.1.0.2:27017/admin" ]
