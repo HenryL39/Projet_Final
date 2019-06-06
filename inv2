@@ -19,5 +19,5 @@ ip_mongodb=35.225.192.185
 ansible_connection=ssh
 ansible_ssh_common_args='-o StrictHostKeyChecking=no -o PreferredAuthentications=password'
 ansible_ssh_user=henry
-ansible_ssh_pass=AZER001_
+ansible_ssh_pass=pp
 host_key_checking = False
