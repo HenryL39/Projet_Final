@@ -8,6 +8,11 @@
       remote_src: yes
       src: "http://apache.mirrors.benatherton.com/maven/maven-3/3.6.1/binaries/apache-maven-3.6.1-bin.tar.gz"
       dest: "/opt"
+
+  - name: Create settings file for maven
+    template:
+      src: settings.xml.j2
+      dest: /tmp/settings.xml
   - name: unarchive java
     unarchive:
       remote_src: yes

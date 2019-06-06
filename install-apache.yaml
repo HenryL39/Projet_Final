@@ -11,6 +11,11 @@
     template:
       src: reverse.conf.j2
       dest: /etc/httpd/conf.d/reverse.conf
+  - name: Set httpd_can_network_connect flag on and keep it persistent across reboots
+    seboolean:
+      name: httpd_can_network_connect
+      state: yes
+      persistent: yes
   - name: ensure httpd is running
     service:
       name: httpd 

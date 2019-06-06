@@ -52,15 +52,6 @@
 
   - name: Login to Jenkins using base password
     shell: java -jar jenkins-cli.jar -s http://localhost:8080/jenkins who-am-i --username admin --password `sudo cat /var/lib/jenkins/secrets/initialAdminPassword`
-
-  # - name: put jenkins ssh key into Jenkins server
-  #   copy:
-  #     src: .ssh
-  #     dest: /var/lib/jenkins/
-
-  # - name: Change permissions of .ssh directory
-  #   shell: sudo chmod 644 /var/lib/jenkins/.ssh/id_rsa.pub ; sudo chmod 600 /var/lib/jenkins/.ssh/id_rsa
-
  
 
   - name: copy config.xml
@@ -138,12 +129,12 @@
       - maven-plugin
       - terraform
       - docker-plugin
-  
+
   - name: Insert/Update HTML surrounded by custom markers after <body> line
-    blockinfile:
+    lineinfile:
       path: /var/lib/jenkins/config.xml
-      insertbefore: "<quietPeriod>"
-      block: "{{ lookup('file', 'jenkins.cloud.conf.j2') }}"
+      regexp: "<clouds/>"
+      line: "{{ lookup('template', 'jenkins.cloud.conf.j2') }}"
 
   - name: restart Jenkins
     service: name=jenkins state=restarted
