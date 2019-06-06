@@ -1,26 +1,28 @@
 [sshproxy]
 104.154.19.70
 [sshproxy:vars]
-
 ansible_ssh_user=henry
 ansible_ssh_pass=pp
 ansible_ssh_common_args='-o StrictHostKeyChecking=no'
 host_key_checking = False
+
 [reste:children]
 mongodb
-
 
 [all:vars]
 ip_sshproxy=104.154.19.70
 ip_mongodb=10.1.0.2
-
+ansible_connection=ssh
+ansible_ssh_common_args='-o StrictHostKeyChecking=no -o PreferredAuthentications=password -o ProxyCommand="ssh -W %h:%p -q henry@104.154.19.70"'
+ansible_ssh_user=henry
+ansible_ssh_pass=pp
+host_key_checking = False
 
 [mongodb]
 10.1.0.2
 [mongodb:vars]
 ansible_connection=ssh
 ansible_ssh_common_args='-o StrictHostKeyChecking=no -o PreferredAuthentications=password -o ProxyCommand="ssh -W %h:%p -q henry@104.154.19.70"'
-
 ansible_ssh_user=henry
 ansible_ssh_pass=pp
 host_key_checking = False
