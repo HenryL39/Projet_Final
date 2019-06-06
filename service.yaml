@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: pj
+spec:
+  type: LoadBalancer
+  selector:
+    app: pj
+  ports:
+  - protocol: TCP
+    port: 8000
+    targetPort: 8080
+  loadBalancerIP: 104.155.165.49
