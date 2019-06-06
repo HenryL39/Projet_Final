@@ -1,6 +1,6 @@
 ---
 - name: Install Mongodb
-  hosts: sshproxy
+  hosts: mongodb
   become: True
   become_method: sudo
   tasks:
