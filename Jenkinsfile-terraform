@@ -1,0 +1,25 @@
+pipeline {
+    agent {docker { 
+        image 'hashicorp/terraform:latest'
+        args '--entrypoint="" -u root -v /opt/jenkins/.aws:/root/.aws'
+        }
+    }
+    stages {
+        stage('Test') {
+            steps {
+                withCredentials([file(credentialsId: 'mickey-tamer', variable: 'MICKEY')]) {
+                    sh '''
+                    [ -d Projet_Final ] && rm -rf Projet_Final/
+                    git clone https://github.com/HenryL39/Projet_Final.git
+                    cd Projet_Final/GCP
+                    cat ${MICKEY} > credentials_gcp.json
+                    terraform --version
+                    terraform init
+                    terraform plan -var-file=gcp-vars.tfvars
+                    yes yes | terraform apply -var-file=gcp-vars.tfvars
+                    '''   
+                }
+            }
+        }
+    }
+}
